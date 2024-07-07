@@ -1,0 +1,11 @@
+# Auth files
+oauth.json
+
+# Data files
+/data
+
+# Annoying caching files
+/__pycache__
+
+# Env files
+.env
