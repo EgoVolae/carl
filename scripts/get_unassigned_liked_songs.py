@@ -55,4 +55,7 @@ def __main__():
 
     print(f"We have {liked_tracks_df.shape[0]} liked tracks; {unassigned_liked_tracks_df.shape[0]} are unassigned")
 
+    output_filename = f"{today_str}_unassignedlikedtracks.csv"
+    unassigned_liked_tracks_df.to_csv(data_dir_path / output_filename, index=False)
+
 __main__()
