@@ -11,7 +11,7 @@ from pathlib import Path
 import pandas as pd
 import datetime as dt
 from typing import Dict
-import json
+
 
 def get_track_details(track: Dict, playlist_name: str = "") -> Dict[str, str]:
     title = track["title"]
@@ -41,35 +41,18 @@ def __main__():
     client = YTMusic(auth=str(auth_path))
     today_str = dt.datetime.now().strftime("%Y%m%d")
 
-    playlists = YTMusic.get_library_playlists(client, limit=100)
+    liked_tracks_data = YTMusic.get_liked_songs(client, limit=1000)
 
     rows = []
-    playlist_count = 0
+    for track in liked_tracks_data["tracks"]:
+        track_data = get_track_details(track)
+        rows.append(track_data)
 
-    for playlist in playlists:
-        playlist_name = playlist["title"]
-        if ("[E]" not in playlist_name) and ("[NE]" not in playlist_name):
-            continue
-        playlist_id = playlist["playlistId"]
-        playlist_data = YTMusic.get_playlist(client, playlistId=playlist_id, limit=1000)
-        print(f"Getting data for {playlist_name}...")
-        for track in playlist_data["tracks"]:
-            track_data = get_track_details(track, playlist_name)
-            rows.append(track_data)
-        playlist_count += 1
+    liked_tracks_df = pd.DataFrame(rows)
+    library_tracks_df = pd.read_csv(data_dir_path / f"latest_YTMusic_tracks.csv")
+    library_tracks_video_ids = library_tracks_df["video_id"].tolist()
+    unassigned_liked_tracks_df = liked_tracks_df[~liked_tracks_df["video_id"].isin(library_tracks_video_ids)]
 
-    df = pd.DataFrame(rows)
-
-    output_filename = f"{today_str}_YTMusic_tracks.csv"
-    latest_tracks_filename = f"latest_YTMusic_tracks.csv"
-    latest_tracks_metadata = {"date": today_str}
-
-    df.to_csv(data_dir_path / output_filename, index=False)
-    df.to_csv(data_dir_path / latest_tracks_filename, index=False)
-
-    with open(data_dir_path / "latest_YTMusic_metadata.json", "w") as file:
-        json.dump(latest_tracks_metadata, file)
-
-    print(f"Successfully saved down information on {df.shape[0]} tracks in {playlist_count} playlists at {output_filename} and {latest_tracks_filename}")
+    print(f"We have {liked_tracks_df.shape[0]} liked tracks; {unassigned_liked_tracks_df.shape[0]} are unassigned")
 
 __main__()
