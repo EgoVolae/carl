@@ -26,14 +26,11 @@ def __main__():
     rows = []
 
     for playlist in playlists:
-        print(playlist)
         playlist_name = playlist["title"]
         if ("[E]" not in playlist_name) and ("[NE]" not in playlist_name):
             continue
         playlist_id = playlist["playlistId"]
-        playlist_data = YTMusic.get_playlist(client, playlistId=playlist_id, limit=1000)
-        print(f"Getting data for {playlist_name}...")
-        row = {"name": playlist_name, "description": playlist["description"]}
+        row = {"name": playlist_name, "description": playlist["description"], "id": playlist_id}
         rows.append(row)
 
     df = pd.DataFrame(rows)
